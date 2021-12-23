@@ -8,7 +8,6 @@ isPrefix "" _
   = True
 isPrefix _ ""
   = False
--- I feel like this next bit can be improved
 isPrefix (a : as) (b : bs)
   | a == b = isPrefix as bs
   | otherwise = False
@@ -57,13 +56,21 @@ findSubstrings' "" (Leaf x)
 findSubstrings' s (Leaf _)
   = []
 findSubstrings' s (Node xs)
-  = concatMap (findSubstrings'' s) xs
+  = concatMap findSubstrings'' xs
   where
-    findSubstrings'' :: String -> (String, SuffixTree) -> [Int]
+    findSubstrings'' :: (String, SuffixTree) -> [Int]
+    findSubstrings'' (a, t)
+      = case partition a s of 
+          ("", _, _)  -> []
+          (p, "", s') -> findSubstrings' s' t
+          (p, a', "") -> getIndices t
+
+{-}
     findSubstrings'' s (a, sfs)
       | isPrefix s a = getIndices sfs
       | isPrefix a s = findSubstrings' (removePrefix a s) sfs 
       | otherwise = []
+-}
 
 ------------------------------------------------------
 
@@ -77,7 +84,7 @@ insert (s, n) (Node xs)
       = [(s, Leaf n)]
     insert' (x@(a, t) : xs)
       = case partition a s of
-          ("", _, _) -> x : insert' xs
+          ("", _, _)  -> x : insert' xs
           (p, "", s') -> (s', insert (s', n) t) : xs
           (p, a', s') -> (p, Node [(s', Leaf n), (a', t)]) : xs
           
