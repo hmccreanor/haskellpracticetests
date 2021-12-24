@@ -7,20 +7,23 @@ data BinTree a = Node a Int (BinHeap a)
 -- PART I
 
 key :: BinTree a -> a
-key
-  = undefined
+key (Node k _ _)
+  = k
 
 rank :: BinTree a -> Int
-rank
-  = undefined
+rank (Node _ r _)
+  = r
 
 children :: BinTree a -> [BinTree a]
-children
-  = undefined
+children (Node _ _ c)
+  = c
 
 combineTrees :: Ord a => BinTree a -> BinTree a -> BinTree a
-combineTrees 
-  = undefined
+--Pre: both trees have the same rank
+combineTrees t@(Node k r c) t'@(Node k' r' c')
+  | k < k'    = Node k (r + 1) (t' : c)
+  | otherwise = Node k' (r + 1) (t : c')
+
 
 --------------------------------------------------------------
 -- PART II
