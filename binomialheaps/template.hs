@@ -92,9 +92,25 @@ toBinary h
     ranks = map rank h
     m = maximum ranks
 
+paddedZip :: [a] -> [b] -> a -> b -> [(a, b)]
+paddedZip xs ys xp yp
+  | xl < yl   = zip (take d $ repeat xp) (take d ys) ++ zip xs (drop d ys)
+  | yl < xl   = zip (take d xs) (take d $ repeat yp) ++ zip (drop d xs) ys
+  | otherwise = zip xs ys
+  where
+    xl = length xs
+    yl = length ys
+    d = abs $ xl - yl
+
 binarySum :: [Int] -> [Int] -> [Int]
-binarySum
-  = undefined
+binarySum b b'
+  | c == 1 = 1 : added
+  | otherwise = added
+  where
+    rippleAdd :: (Int, Int) -> ([Int], Int) -> ([Int], Int)
+    rippleAdd (x, y) (xs, c)
+      = ((x + y + c) `mod` 2 : xs, (x + y + c) `div` 2)
+    (added, c) = foldr rippleAdd ([], 0) $ paddedZip b b' 0 0
 
 ------------------------------------------------------
 -- Some sample trees...
