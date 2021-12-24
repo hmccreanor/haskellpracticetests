@@ -1,3 +1,5 @@
+-- Finished trying to make improvements with 27 mins to go
+
 type BinHeap a = [BinTree a]
 
 data BinTree a = Node a Int (BinHeap a)
