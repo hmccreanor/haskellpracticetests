@@ -86,8 +86,11 @@ binSort xs
 -- PART III
 
 toBinary :: BinHeap a -> [Int]
-toBinary
-  = undefined
+toBinary h
+  = [if x `elem` ranks then 1 else 0 | x <- [m, m-1 .. 0]]
+  where
+    ranks = map rank h
+    m = maximum ranks
 
 binarySum :: [Int] -> [Int] -> [Int]
 binarySum
