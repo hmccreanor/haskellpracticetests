@@ -24,33 +24,50 @@ combineTrees t@(Node k r c) t'@(Node k' r' c')
   | k < k'    = Node k (r + 1) (t' : c)
   | otherwise = Node k' (r + 1) (t : c')
 
-
 --------------------------------------------------------------
 -- PART II
 
 extractMin :: Ord a => BinHeap a -> a
 extractMin 
-  = undefined
+  = minimum . map key
 
 mergeHeaps :: Ord a => BinHeap a -> BinHeap a -> BinHeap a
-mergeHeaps 
-  = undefined
+mergeHeaps [] h
+  = h
+mergeHeaps h []
+  = h
+mergeHeaps h@(t : ts) h'@(t' : ts')
+  | r < r'    = t  : mergeHeaps ts h'
+  | r' < r    = t' : mergeHeaps h ts'
+  | otherwise = mergeHeaps [combineTrees t t'] $ mergeHeaps ts ts'
+  where
+    r  = rank t
+    r' = rank t'
 
 insert :: Ord a => a -> BinHeap a -> BinHeap a
-insert 
-  = undefined
+insert x h
+  = mergeHeaps h $ [Node x 0 []]
 
 deleteMin :: Ord a => BinHeap a -> BinHeap a
-deleteMin 
-  = undefined
+deleteMin h
+  = mergeHeaps c' h'
+  where
+    ((Node _ _ c), h') = removeMin h
+    c' = reverse c
 
+-- Not sure if you can do this with HoF as you can only remove one BinTree
 remove :: Eq a => a -> BinHeap a -> BinHeap a
-remove
-  = undefined
+remove _ []
+  = []
+remove x (t@(Node k _ _) : ts)
+  | k == x = ts
+  | otherwise = t : remove x ts
 
 removeMin :: Ord a => BinHeap a -> (BinTree a, BinHeap a)
-removeMin
-  = undefined
+removeMin h
+  = (head $ filter ((== m) . key) h, remove m h)
+  where
+    m = extractMin h
 
 binSort :: Ord a => [a] -> [a]
 binSort 
