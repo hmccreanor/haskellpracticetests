@@ -28,6 +28,7 @@ combineTrees t@(Node k r c) t'@(Node k' r' c')
 -- PART II
 
 extractMin :: Ord a => BinHeap a -> a
+--Pre: BinHeap contains at least one element
 extractMin 
   = minimum . map key
 
@@ -46,14 +47,13 @@ mergeHeaps h@(t : ts) h'@(t' : ts')
 
 insert :: Ord a => a -> BinHeap a -> BinHeap a
 insert x h
-  = mergeHeaps h $ [Node x 0 []]
+  = mergeHeaps h [Node x 0 []]
 
 deleteMin :: Ord a => BinHeap a -> BinHeap a
 deleteMin h
-  = mergeHeaps c' h'
+  = mergeHeaps h' $ reverse c
   where
     ((Node _ _ c), h') = removeMin h
-    c' = reverse c
 
 -- Not sure if you can do this with HoF as you can only remove one BinTree
 remove :: Eq a => a -> BinHeap a -> BinHeap a
@@ -77,15 +77,14 @@ binSort xs
     clearHeap [] 
       = []
     clearHeap ys
-      = m : clearHeap ys'
-      where
-        m   = extractMin ys
-        ys' = deleteMin ys
+      = extractMin ys : (clearHeap $ deleteMin ys)
 
 --------------------------------------------------------------
 -- PART III
 
 toBinary :: BinHeap a -> [Int]
+toBinary []
+  = [0]
 toBinary h
   = [if x `elem` ranks then 1 else 0 | x <- [m, m-1 .. 0]]
   where
