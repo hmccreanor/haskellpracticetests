@@ -70,8 +70,17 @@ removeMin h
     m = extractMin h
 
 binSort :: Ord a => [a] -> [a]
-binSort 
-  = undefined
+binSort xs
+  = clearHeap $ foldl (flip insert) [] xs
+  where 
+    clearHeap :: Ord a => BinHeap a -> [a]
+    clearHeap [] 
+      = []
+    clearHeap ys
+      = m : clearHeap ys'
+      where
+        m   = extractMin ys
+        ys' = deleteMin ys
 
 --------------------------------------------------------------
 -- PART III
