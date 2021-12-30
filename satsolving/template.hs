@@ -1,3 +1,4 @@
+-- Gave up exam conditions with 45 mins to go
 module SOL where
 
 import Data.List
@@ -66,26 +67,67 @@ distribute a b
 
 -- 4 marks
 toNNF :: Formula -> NNF
-toNNF 
-  = undefined
+toNNF f@(Var _)
+  = f
+toNNF (Not (And f f'))
+  = Or (toNNF $ Not f) (toNNF $ Not f')
+toNNF (Not (Or f f'))
+  = And (toNNF $ Not f) (toNNF $ Not f')
+toNNF (Not (Not f))
+  = toNNF f
+toNNF (Not f)
+  = Not (toNNF f)
+toNNF (And f f')
+  = And (toNNF f) (toNNF f')
+toNNF (Or f f')
+  = Or (toNNF f) (toNNF f')
 
 -- 3 marks
 toCNF :: Formula -> CNF
 toCNF 
-  = undefined
+  = toCNF' . toNNF
+  where
+    toCNF' :: NNF -> CNF
+    toCNF' (Or f f')
+      = distribute f f'
+    toCNF' (And f f')
+      = And (toCNF' f) (toCNF' f')
+    toCNF' x = x
 
 -- 4 marks
 flatten :: CNF -> CNFRep
-flatten 
-  = undefined
+flatten f
+  = flatten' f
+  where
+    m = idMap f
+    flatten' :: CNF -> CNFRep
+    flatten' (Var x)
+      = [[lookUp x m]]
+    flatten' (Not (Var x))
+      = [[negate $ lookUp x m]]
+    flatten' (Or f f')
+      = [concat $ flatten' f ++ flatten' f']
+    flatten' (And f f')
+      = flatten' f ++ flatten' f'
 
 --------------------------------------------------------------------------
 -- Part III
 
 -- 5 marks
+{-}
 propUnits :: CNFRep -> (CNFRep, [Int])
-propUnits 
-  = undefined
+propUnits xs
+  = (prop units (units xs), (units xs))
+  where
+    units = concat . filter ((==1) . length) 
+    prop :: [Int] -> CNFRep -> CNFRep
+    prop [] xs
+      = xs
+    prop (u : us) xs
+      = prop us xs'
+      where
+        xs' = map (filter (/= (-u))) $ filter (not . (elem u)) xs
+        -}
 
 -- 4 marks
 dp :: CNFRep -> [[Int]]

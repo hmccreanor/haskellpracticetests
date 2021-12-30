@@ -73,6 +73,9 @@ removeMin h
 
 binSort :: Ord a => [a] -> [a]
 binSort xs
+  = unfoldr $ foldl (flip insert) [] xs
+{-}
+binSort xs
   = clearHeap $ foldl (flip insert) [] xs
   where 
     clearHeap :: Ord a => BinHeap a -> [a]
@@ -80,6 +83,7 @@ binSort xs
       = []
     clearHeap ys
       = extractMin ys : (clearHeap $ deleteMin ys)
+-}
 
 --------------------------------------------------------------
 -- PART III
