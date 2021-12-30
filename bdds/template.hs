@@ -90,14 +90,22 @@ restrict (And x x') i v
 -- The question suggests the following definition (in terms of buildBDD')
 -- but you are free to implement the function differently if you wish.
 buildBDD :: BExp -> [Index] -> BDD
-buildBDD 
-  = undefined
+buildBDD e xs
+  = buildBDD' e 2 xs
 
 -- Potential helper function for buildBDD which you are free
 -- to define/modify/ignore/delete/embed as you see fit.
 buildBDD' :: BExp -> NodeId -> [Index] -> BDD
-buildBDD' 
-  = undefined
+buildBDD' (Prim False) b [] 
+  = (0, [])
+buildBDD' (Prim True) b []  
+  = (1, [])
+buildBDD' e b (x : xs)
+  = (b, (b, (x, lId, rId)) : (l ++ r))
+  where
+    (lId, l) = buildBDD' (restrict e x False) (2 * b) xs
+    (rId, r) = buildBDD' (restrict e x True) (2 * b + 1) xs
+
 
 ------------------------------------------------------
 -- PART IV
