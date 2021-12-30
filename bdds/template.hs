@@ -37,8 +37,19 @@ checkSat bdd env
         (i, l, r) = lookUp x g
 
 sat :: BDD -> [[(Index, Bool)]]
-sat 
-  = undefined
+sat bdd
+  = sat' s
+  where
+    (s, g) = bdd
+    sat' :: NodeId -> [[(Index, Bool)]]
+    sat' 0 = []
+    sat' 1 = [[]]
+    sat' x
+      = env ++ env'
+      where
+        (i, l, r) = lookUp x g
+        env  = map ((:) (i, False)) $ sat' l
+        env' = map ((:) (i, True)) $ sat' r
 
 ------------------------------------------------------
 -- PART II
