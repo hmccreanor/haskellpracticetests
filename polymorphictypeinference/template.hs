@@ -80,8 +80,28 @@ occurs x _
 -- Pre: All variables in the expression have a binding in the given 
 --      type environment
 inferType :: Expr -> TEnv -> Type
-inferType
-  = undefined
+inferType (Number _) _
+  = TInt
+inferType (Boolean _) _
+  = TBool
+inferType (Id x) e
+  = lookUp x e
+inferType (Prim x) e
+  = lookUp x primTypes
+inferType (Cond c x x') e
+  | tc == TBool && tx == tx' = tx
+  | otherwise                = TErr
+  where
+    tc = inferType c e
+    tx = inferType x e
+    tx' = inferType x' e
+inferType (App f x) e
+  = case tf of
+      TFun t t' -> if t == tx then t' else TErr
+      otherwise -> TErr
+      where
+        tf = inferType f e
+        tx = inferType x e
 
 ------------------------------------------------------
 -- PART III
