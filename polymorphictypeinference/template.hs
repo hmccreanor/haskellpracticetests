@@ -166,15 +166,41 @@ combineSubs
   = foldr1 combine
 
 inferPolyType :: Expr -> Type
-inferPolyType
-  = undefined
+inferPolyType x
+  = t
+  where
+    (_, t, _) = inferPolyType' x [] ['a' : show n | n <- [1..]]
 
 -- You may optionally wish to use one of the following helper function declarations
 -- as suggested in the specification. 
 
--- inferPolyType' :: Expr -> TEnv -> [String] -> (Sub, Type, [String])
--- inferPolyType'
---   = undefined
+inferPolyType' :: Expr -> TEnv -> [String] -> (Sub, Type, [String])
+inferPolyType' (Number _) e ns
+  = ([], TInt, ns)
+inferPolyType' (Boolean _) e ns
+  = ([], TBool, ns)
+inferPolyType' v@(Id x) e (n : ns)
+  = ([], tryToLookUp x (TVar n) e, ns)
+inferPolyType' (Prim x) e ns
+  = ([], lookUp x primTypes, ns)
+inferPolyType' (Fun v x) e (n : ns)
+  | te == TErr = ([], TErr, [])
+  | otherwise  = (s', TFun v'' te, ns')
+  where
+    v' = TVar n
+    s = [(v, v')]
+    e' = updateTEnv e s
+    (s', te, ns') = inferPolyType' x e' ns
+    v'' = applySub s' v'
+inferPolyType' (App f x) e (n : ns)
+  | u == Nothing = ([], TErr, (n : ns))
+  | otherwise = (combineSubs [s, s', u'], applySub u' (TVar n), ns'')
+  where
+    (s, tf, ns') = inferPolyType' f e ns
+    e' = updateTEnv e s
+    (s', te, ns'') = inferPolyType' x e' ns'
+    u = unify tf (TFun te (TVar n))
+    u' = fromJust u
 
 -- inferPolyType' :: Expr -> TEnv -> Int -> (Sub, Type, Int)
 -- inferPolyType' 
