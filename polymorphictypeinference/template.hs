@@ -106,16 +106,45 @@ inferType (App f x) e
 ------------------------------------------------------
 -- PART III
 
-applySub
-  = undefined
+applySub :: Sub -> Type -> Type
+applySub _ TInt
+  = TInt
+applySub _ TBool
+  = TBool
+applySub s v@(TVar x)
+  = tryToLookUp x v s
+applySub s (TFun t t')
+  = TFun (applySub s t) (applySub s t')
+
+applySub' :: Sub -> [(Type, Type)] -> [(Type, Type)]
+applySub' s xs
+  = [(applySub s t, applySub s t') | (t, t') <- xs]
 
 unify :: Type -> Type -> Maybe Sub
 unify t t'
   = unifyPairs [(t, t')] []
 
 unifyPairs :: [(Type, Type)] -> Sub -> Maybe Sub
-unifyPairs
-  = undefined
+unifyPairs [] s
+  = Just s
+unifyPairs ((TInt, TInt) : xs) s
+  = unifyPairs xs s
+unifyPairs ((TBool, TBool) : xs) s
+  = unifyPairs xs s
+unifyPairs ((TVar v, t@(TVar v')) : xs) s
+  | v == v'   = unifyPairs xs s
+unifyPairs ((TVar v, t) : xs) s
+  | occurs v t = Nothing
+  | otherwise  = unifyPairs (applySub' [(v, t)] xs) ((v, t) : s)
+unifyPairs ((t, TVar v) : xs) s
+  | occurs v t = Nothing
+  | otherwise  = unifyPairs (applySub' [(v, t)] xs) ((v, t) : s)
+  where
+    s' = (v, t) : s
+unifyPairs ((TFun t1 t2, TFun t1' t2') : xs) s
+  = unifyPairs ((t1, t1') : (t2, t2') : xs) s
+unifyPairs _ _
+  = Nothing
 
 ------------------------------------------------------
 -- PART IV
