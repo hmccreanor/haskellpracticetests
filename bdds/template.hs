@@ -110,11 +110,55 @@ buildBDD' e b (x : xs)
 ------------------------------------------------------
 -- PART IV
 
+{-
+First optimisation:
+We can check for nodes which refer to the same subtree in both their left and
+right branch as follows.
+
+(1, l, r) = ...
+(2, 3, 3) = ...
+The l and r are the same here so we should set the node at 1 to
+(1, l, 3)
+
+(1, l) = ...
+(2, r) = ...
+Then for both l and r
+lookup the node that starts at that 
+
+Second optimisation:
+We can check for shared subtrees in the following way.
+
+(lI)
+
+-}
+
 -- Pre: Each variable index in the BExp appears exactly once
 --      in the Index list; there are no other elements
 buildROBDD :: BExp -> [Index] -> BDD
-buildROBDD 
-  = undefined
+buildROBDD e xs
+  = buildROBDD' e 2 xs
+
+lookUp' :: Eq b => b -> [(a, b)] -> a
+lookUp' v 
+  = (lookUp v) . (map (\(a, b) -> (b, a))) 
+
+buildROBDD' :: BExp -> NodeId -> [Index] -> BDD
+buildROBDD' (Prim False) b []
+  = (0, [])
+buildROBDD' (Prim True) b []
+  = (1, [])
+buildROBDD' e b (x : xs)
+  | lId' == lId'' && rId' == rId'' = (b, (b, (x, lId', rId')) : (l' ++ r'))
+  | lId' == lId'' = (b, (b, (x, lId', rId)) : (l' ++ r))
+  | rId' == rId'' = (b, (b, (x, lId, rId')) : (l ++ r'))
+  | otherwise     = (b, (b, (x, lId, rId)) : (l ++ r))
+  where
+    (lId, l) = buildROBDD' (restrict e x False) (2 * b) xs
+    (rId, r) = buildROBDD' (restrict e x True) (2 * b + 1) xs
+    (_, lId', lId'') = lookUp lId l
+    (_, rId', rId'') = lookUp rId r
+    l' = filter ((/=lId) . fst) l
+    r' = filter ((/=rId) . fst) r
 
 ------------------------------------------------------
 -- Examples for testing...
