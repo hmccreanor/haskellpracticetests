@@ -187,20 +187,20 @@ inferPolyType' (Fun v x) e (n : ns)
   | te == TErr = ([], TErr, [])
   | otherwise  = (s', TFun v'' te, ns')
   where
-    v' = TVar n
-    s = [(v, v')]
-    e' = updateTEnv e s
+    v'            = TVar n
+    s             = [(v, v')]
+    e'            = updateTEnv e s
     (s', te, ns') = inferPolyType' x e' ns
-    v'' = applySub s' v'
+    v''           = applySub s' v'
 inferPolyType' (App f x) e (n : ns)
   | u == Nothing = ([], TErr, (n : ns))
-  | otherwise = (combineSubs [s, s', u'], applySub u' (TVar n), ns'')
+  | otherwise    = (combineSubs [s, s', u'], applySub u' (TVar n), ns'')
   where
-    (s, tf, ns') = inferPolyType' f e ns
-    e' = updateTEnv e s
+    (s, tf, ns')   = inferPolyType' f e ns
+    e'             = updateTEnv e s
     (s', te, ns'') = inferPolyType' x e' ns'
-    u = unify tf (TFun te (TVar n))
-    u' = fromJust u
+    u              = unify tf (TFun te (TVar n))
+    u'             = fromJust u
 
 -- inferPolyType' :: Expr -> TEnv -> Int -> (Sub, Type, Int)
 -- inferPolyType' 
