@@ -83,7 +83,12 @@ getValue :: XML -> XML
 getValue t@(Text _)
   = t
 getValue (Element _ _ es)
-  = foldl (\(Text a) (Text b) -> (Text (a ++ b))) (Text "") $ map getValue es
+  = foldl concatText (Text "") $ map getValue es
+
+concatText :: XML -> XML -> XML
+-- Pre: both arguments are Text
+concatText (Text a) (Text b)
+  = Text (a ++ b)
 
 -------------------------------------------------------------------------
 -- Part II
@@ -105,18 +110,27 @@ sentinel
 
 addText :: String -> Stack -> Stack
 -- Pre: There is at least one Element on the stack
-addText 
-  = undefined
+addText s (e@(Element _ _ _) : xs)
+  = addChild (Text s) e : xs
 
 popAndAdd :: Stack -> Stack
 -- Pre: There are at least two Elements on the stack
-popAndAdd 
-  = undefined
+popAndAdd (e@(Element _ _ _) : e'@(Element _ _ _) : xs)
+  = addChild e e' : xs
 
 parseAttributes :: String -> (Attributes, String)
 -- Pre: The XML attributes string is well-formed
-parseAttributes 
-  = undefined
+parseAttributes s
+  | head s' == '>' = ([], tail s')
+  | otherwise = ((a, v) : as, rest)
+  where
+    s'          = skipSpace s
+    (a, xs)     = parseName s'
+    (_, xs')    = (span (== '=') . skipSpace) xs -- This could be rewritten much better using takeWhile/dropWhile I think
+    (_, xs'')   = (span (== '"') . skipSpace) xs'
+    (v, xs''')  = break (== '"') xs''
+    (_, xs'''') = (span (== '"') . skipSpace) xs'''
+    (as, rest)  = parseAttributes xs''''
 
 parse :: String -> XML
 -- Pre: The XML string is well-formed
@@ -124,8 +138,21 @@ parse s
   = parse' (skipSpace s) [sentinel]
 
 parse' :: String -> Stack -> XML
-parse' 
-  = undefined
+parse' "" ((Element _ _ (c : _)) : _)
+  = c
+parse' ('<' : '/' : xs) s
+  = parse' ((tail . dropWhile (/='>')) xs) $ popAndAdd s
+parse' ('<' : xs) s
+  = parse' xs'' s'
+  where
+    (n, xs') = parseName xs
+    (as, xs'') = parseAttributes xs'
+    s' = (Element n as []) : s
+parse' xs s
+  = parse' xs' s'
+  where
+    (t, xs') = break (=='<') xs
+    s' = addText t s
 
 -------------------------------------------------------------------------
 -- Part III
