@@ -46,29 +46,44 @@ printXMLs
 -- Part I
 
 skipSpace :: String -> String
-skipSpace
-  = undefined
+skipSpace 
+  = dropWhile isSpace 
 
 getAttribute :: String -> XML -> String
-getAttribute 
-  = undefined
+getAttribute a (Element _ as _)
+  = fromMaybe "" $ lookup a as
+getAttribute _ _
+  = ""
 
 getChildren :: String -> XML -> [XML]
-getChildren 
-  = undefined
+getChildren n (Element _ _ es)
+  = filter (getChildren' n) es
+  where
+    getChildren' :: String -> XML -> Bool
+    getChildren' n (Element n' _ _)
+      = n == n'
+    getChildren' _ _
+      = False
+getChildren _ _
+  = []
 
 getChild :: String -> XML -> XML
-getChild 
-  = undefined
+getChild n e
+  | null children = Text ""
+  | otherwise     = head children
+  where
+    children = getChildren n e
 
 addChild :: XML -> XML -> XML
 -- Pre: the second argument is an Element
-addChild 
-  = undefined
+addChild c (Element n as es)
+  = Element n as (es ++ [c]) -- Could use singleton for [c]
 
 getValue :: XML -> XML
-getValue 
-  = undefined
+getValue t@(Text _)
+  = t
+getValue (Element _ _ es)
+  = foldl (\(Text a) (Text b) -> (Text (a ++ b))) (Text "") $ map getValue es
 
 -------------------------------------------------------------------------
 -- Part II
