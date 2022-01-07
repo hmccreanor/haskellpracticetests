@@ -11,20 +11,23 @@ import Examples
 -- Part I
 --
 count :: Eq a => a -> [a] -> Int
-count 
-  = undefined
+count x 
+  = length . filter (==x)
 
 degrees :: Eq a => Graph a -> [(a, Int)]
-degrees 
-  = undefined
+degrees (ns, es)
+  = [(n, (count n e) + (count n e')) | n <- ns]
+  where
+    (e, e') = unzip es
+
 
 neighbours :: Eq a => a -> Graph a -> [a]
-neighbours 
-  = undefined
+neighbours n (_, es)
+  = [if e' == n then e else e' | (e, e') <- es, n == e || n == e']
 
 removeNode :: Eq a => a -> Graph a -> Graph a
-removeNode 
-  = undefined
+removeNode n (ns, es)
+  = (filter (not . (==n)) ns, [x | x@(e, e') <- es, e /= n && e' /= n])
 
 ------------------------------------------------------
 --
