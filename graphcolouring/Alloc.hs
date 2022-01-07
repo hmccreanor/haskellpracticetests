@@ -27,15 +27,27 @@ neighbours n (_, es)
 
 removeNode :: Eq a => a -> Graph a -> Graph a
 removeNode n (ns, es)
-  = (filter (not . (==n)) ns, [x | x@(e, e') <- es, e /= n && e' /= n])
+  = (filter (/=n) ns, [x | x@(e, e') <- es, e /= n && e' /= n])
 
 ------------------------------------------------------
 --
 -- Part II
 --
 colourGraph :: (Ord a, Show a) => Int -> Graph a -> Colouring a
-colourGraph 
-  = undefined
+colourGraph _ ([], _)
+  = []
+colourGraph k g
+  | null cs   = (n, 0) : cMap
+  | otherwise = (n, head cs) : cMap
+  where
+    ((n, _) : _) = map flipTuple . sort . map flipTuple $ degrees g
+    g'      = removeNode n g
+    cMap    = colourGraph k g'
+    ncs     = [lookUp x cMap | x <- neighbours n g]
+    cs      = [1..k] \\ ncs
+
+flipTuple :: (a, b) -> (b, a)
+flipTuple (a, b) = (b, a)
 
 ------------------------------------------------------
 --
