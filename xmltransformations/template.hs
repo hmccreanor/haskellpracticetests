@@ -178,8 +178,33 @@ expandXSL xsl source
     root = Element "/" [] [source] 
 
 expandXSL' :: Context -> XSL -> [XML]
-expandXSL' 
+expandXSL' _ (Text _)
+  = []
+expandXSL' c (Element "for-each" as es)
   = undefined
+expandXSL' c (Element "value-of" as es)
+  = undefined
+expandXSL' c (Element n as es)
+  = map expandXSL' c es
+
+{- 
+
+Four separate cases we need to handle
+
+Case 1:
+c Element "for-each" 
+
+Case 2:
+c Element "value-of"
+
+Case 3:
+c Element n as es
+= Element n as (map expandXSL' c')
+
+Case 4:
+Text _
+
+-}
 
 -------------------------------------------------------------------------
 -- Test data for Parts I and II
