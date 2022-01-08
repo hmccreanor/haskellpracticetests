@@ -2,6 +2,7 @@ module Alloc where
 
 import Data.Maybe
 import Data.List
+import Data.Tuple
 
 import Types
 import Examples
@@ -40,22 +41,18 @@ colourGraph k g
   | null cs   = (n, 0) : cMap
   | otherwise = (n, head cs) : cMap
   where
-    ((n, _) : _) = map flipTuple . sort . map flipTuple $ degrees g
-    g'      = removeNode n g
-    cMap    = colourGraph k g'
+    ((n, _) : _) = map swap . sort . map swap $ degrees g
+    cMap    = colourGraph k $ removeNode n g
     ncs     = [lookUp x cMap | x <- neighbours n g]
     cs      = [1..k] \\ ncs
-
-flipTuple :: (a, b) -> (b, a)
-flipTuple (a, b) = (b, a)
 
 ------------------------------------------------------
 --
 -- Part III
 --
 buildIdMap :: Colouring Id -> IdMap
-buildIdMap c
-  = ("return", "return") : map buildId c
+buildIdMap m
+  = ("return", "return") : map buildId m 
   where
     buildId :: (Id, Int) -> (String, String)
     buildId (v, 0) 
@@ -96,7 +93,6 @@ renameBlock ((If e b b') : xs) m
 renameBlock ((While e b) : xs) m
   = (While (renameExp e m) (renameBlock b m)) : (renameBlock xs m)
 
-
 renameFun :: Function -> IdMap -> Function
 renameFun (f, as, b) idMap
   = (f, as, buildArgAssignments as idMap ++ renameBlock b idMap)
@@ -106,8 +102,14 @@ renameFun (f, as, b) idMap
 -- Part IV
 --
 buildIG :: [[Id]] -> IG
-buildIG 
-  = undefined
+buildIG vss
+  = (nub ns, nub es)
+  where
+    (ns, es) = foldl buildIG' ([], []) vss
+    buildIG' :: ([Id], [Edge Id]) -> [Id] -> ([Id], [Edge Id])
+    buildIG' (ins, ies) vs
+      = (vs ++ ins, [(min x y, max x y) | x <- vs, y <- vs, x /= y] ++ ies)
+    
 
 -----------------------------------------------------
 --
