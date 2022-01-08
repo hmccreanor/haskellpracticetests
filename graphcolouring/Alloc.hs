@@ -54,24 +54,48 @@ flipTuple (a, b) = (b, a)
 -- Part III
 --
 buildIdMap :: Colouring Id -> IdMap
-buildIdMap 
-  = undefined
+buildIdMap c
+  = ("return", "return") : map buildId c
+  where
+    buildId :: (Id, Int) -> (String, String)
+    buildId (v, 0) 
+      = (v, v)
+    buildId (v, n)
+      = (v, "R" ++ show n)
 
 buildArgAssignments :: [Id] -> IdMap -> [Statement]
-buildArgAssignments 
-  = undefined
+buildArgAssignments xs m
+  = map (\x -> Assign (lookUp x m) (Var x)) xs
 
 renameExp :: Exp -> IdMap -> Exp
 -- Pre: A precondition is that every variable referenced in 
 -- the expression is in the idMap. 
-renameExp 
-  = undefined
+renameExp (Var x) m
+  = Var $ lookUp x m
+renameExp (Apply o e e') m
+  = Apply o (renameExp e m) (renameExp e' m)
+renameExp x _
+  = x
 
 renameBlock :: Block -> IdMap -> Block
 -- Pre: A precondition is that every variable referenced in 
 -- the block is in the idMap. 
-renameBlock 
-  = undefined
+renameBlock [] _
+  = []
+renameBlock ((Assign i (Var i')) : xs) m
+  | ri == ri'   = xs'
+  | otherwise = (Assign ri (Var ri')) : xs'
+  where
+    ri = lookUp i m
+    ri' = lookUp i' m
+    xs' = renameBlock xs m
+renameBlock ((Assign i e) : xs) m
+  = (Assign i (renameExp e m)) : (renameBlock xs m)
+renameBlock ((If e b b') : xs) m
+  = (If (renameExp e m) (renameBlock b m) (renameBlock b' m)) : (renameBlock xs m) 
+renameBlock ((While e b) : xs) m
+  = (While (renameExp e m) (renameBlock b m)) : (renameBlock xs m)
+
 
 renameFun :: Function -> IdMap -> Function
 renameFun (f, as, b) idMap
