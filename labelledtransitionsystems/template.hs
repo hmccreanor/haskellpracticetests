@@ -76,24 +76,39 @@ accepts ids pdefs@((_, p) : _)
     accepts' xs (Choice ps)
       = any (accepts' xs) ps
 
-
 ------------------------------------------------------
 -- PART III
 
---composeTransitions :: Transition -> Transition 
---                   -> Alphabet -> Alphabet 
---                   -> StateMap 
---                   -> [Transition]
+composeTransitions :: Transition -> Transition 
+                   -> Alphabet -> Alphabet 
+                   -> StateMap 
+                   -> [Transition]
 --Pre: The first alphabet is that of the LTS from which the first transition is
 --     drawn; likewise the second.
 --Pre: All (four) pairs of source and target states drawn from the two transitions
 --     are contained in the given StateMap.
-composeTransitions
-  = undefined
+composeTransitions ((s, t), a) ((s', t'), a') k k' m 
+  | a == a'                    = [((iss, itt), a)] 
+  | (elem a k') && (elem a' k) = []
+  | (elem a' k)                = [((iss, its), a)]
+  | (elem a k')                = [((iss, ist), a')]
+  | otherwise                  = [((iss, its), a), ((iss, ist), a')]
+  where
+    iss = lookUp (s, s') m
+    itt = lookUp (t, t') m
+    its = lookUp (t, s') m
+    ist = lookUp (s, t') m
 
 pruneTransitions :: [Transition] -> LTS
-pruneTransitions 
-  = undefined
+pruneTransitions ts
+  = filter ((flip elem) (visit 0 [])) ts
+  where
+    visit :: State -> [State] -> [Transition]
+    visit s xs
+      | (elem s xs) = []
+      | otherwise = concatMap (\t@((from, to), a) -> t : visit to (from : xs)) ts' 
+      where
+        ts' = transitions s ts
 
 ------------------------------------------------------
 -- PART IV
