@@ -48,14 +48,34 @@ alphabet
 -- PART II
 
 actions :: Process -> [Id]
-actions
-  = undefined
+actions STOP
+  = []
+actions (Ref p)
+  = []
+actions (Prefix a p)
+  = nub $ a : actions p
+actions (Choice ps)
+  = nub $ concatMap actions ps
 
 accepts :: [Id] -> [ProcessDef] -> Bool
 --Pre: The first item in the list of process definitions is
 --     that of the start process.
-accepts 
-  = undefined
+accepts ids pdefs@((_, p) : _) 
+  = accepts' ids p
+  where
+    accepts' :: [Id] -> Process -> Bool
+    accepts' [] _
+      = True
+    accepts' xs STOP
+      = False
+    accepts' xs (Ref p)
+      = accepts' xs $ lookUp p pdefs
+    accepts' (x : xs) (Prefix a p)
+      | a == x    = accepts' xs p
+      | otherwise = False
+    accepts' xs (Choice ps)
+      = any (accepts' xs) ps
+
 
 ------------------------------------------------------
 -- PART III
