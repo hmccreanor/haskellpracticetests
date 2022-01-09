@@ -24,19 +24,25 @@ type StateMap = [((State, State), State)]
 lookUp :: Eq a => a -> [(a, b)] -> b
 --Pre: The item is in the table
 lookUp
-  = undefined
+  = (fromJust .) . lookup
 
 states :: LTS -> [State]
-states
-  = undefined
+states lts
+  = nub $ states' lts
+  where
+    states' :: LTS -> [State]
+    states' []
+      = []
+    states' (((s, s'), _) : xs)
+      = s : s' : (states' xs)
 
 transitions :: State -> LTS -> [Transition]
-transitions
-  = undefined
+transitions s 
+  = filter ((==s) . fst . fst) 
 
 alphabet :: LTS -> Alphabet
 alphabet 
-  = undefined
+  = nub . map snd
 
 ------------------------------------------------------
 -- PART II
