@@ -81,34 +81,58 @@ assignArray (A xs) (I i) (I v)
 
 updateVar :: (Id, Value) -> State -> State
 updateVar (i, v) bs
-  | binding == Nothing = (i, (Local, v)) : bs'
-  | otherwise          = bs'
+  = updateVar' $ break ((==i) . fst) bs
   where
-    bs' = [if i' == i then (i, (sc, v)) else b | b@(i', (sc, _)) <- bs]
-    binding = lookup i bs'
+    updateVar' (_, [])
+      = (i, (Local, v)) : bs
+    updateVar' (xs, ((_, (s, _)) : ys))
+      = xs ++ [(i, (s, v))] ++ ys
 
 ---------------------------------------------------------------------
 -- Part II
 
 applyOp :: Op -> Value -> Value -> Value
 -- Pre: The values have the appropriate types (I or A) for each primitive
-applyOp 
-  = undefined
+applyOp Add (I x) (I y)
+  = I (x + y)
+applyOp Mul (I x) (I y)
+  = I (x * y)
+applyOp Less (I x) (I y)
+  | x < y     = I 1
+  | otherwise = I 0
+applyOp Equal (I x) (I y)
+  | x == y    = I 1
+  | otherwise = I 0
+applyOp Index (A as) (I i) 
+  = I (fromMaybe 0 (lookup i as))
 
 bindArgs :: [Id] -> [Value] -> State
 -- Pre: the lists have the same length
-bindArgs
-  = undefined
+bindArgs 
+  = zipWith (\i v -> (i, (Local, v)))
 
 evalArgs :: [Exp] -> [FunDef] -> State -> [Value]
-evalArgs
-  = undefined
+evalArgs exprs fdefs s
+  = [eval expr fdefs s | expr <- exprs]
 
 eval :: Exp -> [FunDef] -> State -> Value
 -- Pre: All expressions are well formed
 -- Pre: All variables referenced have bindings in the given state
-eval 
-  = undefined
+eval (Const c) _ _
+  = c
+eval (Var i) _ s
+  = getValue i s
+eval (Cond p e e') fdefs s
+  | eval p fdefs s == I 1 = eval e fdefs s
+  | otherwise             = eval e' fdefs s
+eval (OpApp op e e') fdefs s
+  = applyOp op (eval e fdefs s) (eval e' fdefs s)
+eval (FunApp f exprs) fdefs s
+  = eval e fdefs (s' ++ s)
+  where
+    (as, e) = lookUp f fdefs
+    vs      = evalArgs exprs fdefs s
+    s'      = bindArgs as vs
 
 ---------------------------------------------------------------------
 -- Part III
